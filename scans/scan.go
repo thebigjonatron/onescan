@@ -1,13 +1,9 @@
 package scans
 
-import (
-	"net"
-)
+import "net"
 
 type Scanner interface {
-	CloseConnection(conn net.Conn)
-}
-
-func StartScanner(scanner Scanner, ports []int, ip net.IP) {
-
+	CloseConnection()
+	StartScanner(ports []int, ip net.IP)
+	StopScanner()
 }

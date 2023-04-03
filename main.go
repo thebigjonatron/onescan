@@ -2,11 +2,15 @@ package main
 
 import (
 	"onescan/scans"
+	"strconv"
 	"time"
 )
 
 func main() {
 	s := new(scans.Synscan)
-	mySlice := make([]string, 3)
-	s.StartScan(mySlice, "192.168.1.1.", time.Duration(1)*2)
+	ports := make([]string, 100)
+	for i := 0; i < len(ports); i++ {
+		ports[i] = strconv.Itoa(i)
+	}
+	s.Start(ports, "192.168.1.1", time.Second)
 }

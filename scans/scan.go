@@ -1,9 +1,9 @@
 package scans
 
-import "net"
+import (
+	"time"
+)
 
 type Scanner interface {
-	CloseConnection()
-	StartScanner(ports []int, ip net.IP)
-	StopScanner()
+	Start(ports []string, ip string, timeout time.Duration)
 }

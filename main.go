@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	s := new(scans.Synscan)
+	s := new(scans.SynScan)
 	ports := make([]string, 100)
 	for i := 0; i < len(ports); i++ {
 		ports[i] = strconv.Itoa(i)

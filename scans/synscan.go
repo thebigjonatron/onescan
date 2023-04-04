@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-type Synscan struct {
+type SynScan struct {
 }
 
 /*
 *
 Syn scan specific. Sends RST packet to close connection.
 */
-func (scan *Synscan) closeConnection(connection *net.TCPConn) {
+func (scan *SynScan) closeConnection(connection *net.TCPConn) {
 	err := connection.SetLinger(0)
 	if err != nil {
 		log.Printf("Can't set linger")
@@ -26,7 +26,7 @@ func (scan *Synscan) closeConnection(connection *net.TCPConn) {
 	}
 }
 
-func (scan *Synscan) Start(ports []string, ip string, timeout time.Duration) {
+func (scan *SynScan) Start(ports []string, ip string, timeout time.Duration) {
 	ipNet := net.ParseIP(ip)
 	for _, value := range ports {
 		address := net.JoinHostPort(ipNet.String(), value)

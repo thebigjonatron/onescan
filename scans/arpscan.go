@@ -1,7 +1,6 @@
 package scans
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
@@ -10,20 +9,29 @@ type ArpScan struct {
 }
 
 func (scan *ArpScan) Start() {
-	localMAC()
+	getLocalInterfaceMAC("192.168.1.1")
 }
 
 func arpPacket() {
 
 }
 
-func localMAC() *[]net.Interface {
+func getLocalInterfaceMAC(ip string) *net.Interface {
 	// Should find a way to know which non-loopback interface we want
-	intface, err := net.Interfaces()
+	intfaces, err := net.Interfaces()
 	if err != nil {
 		log.Printf("Cannot get interfaces %s", err)
 		return nil
 	}
-	fmt.Println(intface)
-	return &intface
+	for _, intface := range intfaces {
+		if intface.Flags&net.FlagUp != 0 &&
+			intface.Flags&net.FlagBroadcast != 0 &&
+			intface.Flags&net.FlagMulticast != 0 &&
+			intface.Flags&net.FlagLoopback == 0 &&
+			intface.HardwareAddr != nil {
+			return &intface //Find first up interface, maybe not the one we want ?? Should be able to select interface
+			// Or find default with the ip range of the network
+		}
+	}
+	return nil
 }

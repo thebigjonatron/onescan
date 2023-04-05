@@ -59,7 +59,6 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 		SourceProtAddress: []byte(intfaceAddr),
 		DstHwAddress:      []byte{0, 0, 0, 0, 0, 0},
 	}
-
 	for _, ip := range getIPRange(intfaceAddr) {
 		arp.DstProtAddress = []byte(ip)
 		err := gopacket.SerializeLayers(buffer, options, &eth, &arp)
@@ -73,7 +72,8 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 }
 
 func getIPRange(ip net.IP) []net.IP {
-
+	ipStr := ip.String()
+	fmt.Println(ipStr)
 }
 
 // Redo to get correct ip and assure it's valid.
@@ -96,7 +96,6 @@ func getLocalInterface(name string) *net.Interface {
 		log.Printf("Cannot get interfaces %s", err)
 		return nil
 	}
-
 	for _, intface := range intfaces {
 		if intface.Name == name {
 			fmt.Println(intface.Name)

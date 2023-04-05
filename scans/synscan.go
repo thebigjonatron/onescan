@@ -28,8 +28,8 @@ func (scan *SynScan) closeConnection(connection *net.TCPConn) {
 
 func (scan *SynScan) Start(ports []string, ip string, timeout time.Duration) {
 	ipNet := net.ParseIP(ip)
-	for _, value := range ports {
-		address := net.JoinHostPort(ipNet.String(), value)
+	for _, port := range ports {
+		address := net.JoinHostPort(ipNet.String(), port)
 		connection, err := net.DialTimeout("tcp", address, timeout)
 		if err != nil {
 			// Check for rst return

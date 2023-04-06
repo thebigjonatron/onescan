@@ -18,19 +18,20 @@ type ArpScan struct {
 }
 
 func (arpScan *ArpScan) Start() {
-	scan(getLocalInterface("enp58s0u1u4"))
-}
-
-// Must scan given subnet
-func scan(intface *net.Interface) {
-	// Open pcap handle to read and write arp requests
-	handle, err := pcap.OpenLive(intface.Name, 65536, true, pcap.BlockForever)
-	if err != nil {
-		panic(err)
+	getSubnetRange(net.ParseIP("192.168.1.1"), "/24")
+	/*scan(getLocalInterface("enp58s0u1u4"))
 	}
-	defer handle.Close()
-	go writeARPToHandle(handle, intface)
-	//go readARPFromHandle(handle)
+
+	// Must scan given subnet
+	func scan(intface *net.Interface) {
+		// Open pcap handle to read and write arp requests
+		handle, err := pcap.OpenLive(intface.Name, 65536, true, pcap.BlockForever)
+		if err != nil {
+			panic(err)
+		}
+		defer handle.Close()
+		go writeARPToHandle(handle, intface)
+		//go readARPFromHandle(handle)*/
 }
 
 func readARPFromHandle(handle *pcap.Handle) {
@@ -59,7 +60,7 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 		SourceProtAddress: []byte(intfaceAddr),
 		DstHwAddress:      []byte{0, 0, 0, 0, 0, 0},
 	}
-	for _, ip := range getIPRange(intfaceAddr) {
+	for _, ip := range getSubnetRange(intfaceAddr, "/24") {
 		arp.DstProtAddress = []byte(ip)
 		err := gopacket.SerializeLayers(buffer, options, &eth, &arp)
 		if err != nil {
@@ -71,9 +72,9 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 	}
 }
 
-func getIPRange(ip net.IP) []net.IP {
-	ipStr := ip.String()
-	fmt.Println(ipStr)
+func getSubnetRange(ipAddr net.IP, subnet string) []net.IP {
+	fmt.Printf("%s\n", ipAddr)
+	return nil
 }
 
 // Redo to get correct ip and assure it's valid.

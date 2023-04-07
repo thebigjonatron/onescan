@@ -1,6 +1,7 @@
 package scans
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -9,12 +10,8 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
-
-// TODO
-// Better error management
-// Better way to select interface (with ip, by name ?
-// Go routine efficiently reading and writing.
 
 type ArpScan struct {
 }
@@ -24,21 +21,42 @@ func (arpScan *ArpScan) Start() {
 }
 
 func scan(intface *net.Interface) {
-	// Open pcap handle to read and write arp requests
 	handle, err := pcap.OpenLive(intface.Name, 65536, true, pcap.BlockForever)
 	if err != nil {
 		panic(err)
 	}
 	defer handle.Close()
-	writeARPToHandle(handle, intface)
-	//go readARPFromHandle(handle)
+	stop := make(chan struct{})
+	go readARPFromHandle(handle, intface, stop)
+	defer close(stop)
+	writeARPToHandle(handle, intface, stop)
+	time.Sleep(10 * time.Second) //Waits 10 secs and stop main exec thread
 }
 
-func readARPFromHandle(handle *pcap.Handle) {
-
+func readARPFromHandle(handle *pcap.Handle, intface *net.Interface, stop chan struct{}) {
+	src := gopacket.NewPacketSource(handle, layers.LayerTypeEthernet)
+	in := src.Packets()
+	for {
+		var packet gopacket.Packet
+		select {
+		case <-stop:
+			return
+		case packet = <-in:
+			arpLayer := packet.Layer(layers.LayerTypeARP)
+			if arpLayer == nil {
+				continue
+			}
+			arp := arpLayer.(*layers.ARP)
+			if arp.Operation != layers.ARPReply || bytes.Equal([]byte(intface.HardwareAddr), arp.SourceHwAddress) {
+				// This is a packet I sent.
+				continue
+			}
+			fmt.Printf("IP %v is active \n", net.IP(arp.SourceProtAddress))
+		}
+	}
 }
 
-func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
+func writeARPToHandle(handle *pcap.Handle, intface *net.Interface, stop chan struct{}) {
 	intfaceAddr := getNetwork(intface)
 	buffer := gopacket.NewSerializeBuffer()
 	fmt.Println([]byte(net.ParseIP(intfaceAddr[0]).To4()))
@@ -62,14 +80,14 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 		DstHwAddress:      []byte{0, 0, 0, 0, 0, 0},
 	}
 	for _, ip := range getSubnetRange(intfaceAddr) {
-		arp.DstProtAddress = []byte(ip.To4())
+		arp.DstProtAddress = ip.To4()
 		err := gopacket.SerializeLayers(buffer, options, &eth, &arp)
 		if err != nil {
 			fmt.Println("c", err)
 			return
 		}
 		if err := handle.WritePacketData(buffer.Bytes()); err != nil {
-			fmt.Println("Can't write to handle")
+			fmt.Println("Can't write to handle", err)
 		}
 	}
 }

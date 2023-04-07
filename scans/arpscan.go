@@ -7,18 +7,20 @@ import (
 	"github.com/google/gopacket/pcap"
 	"log"
 	"net"
+	"strconv"
+	"strings"
 )
 
 // TODO
 // Better error management
 // Better way to select interface (with ip, by name ?
-// Multi-thread bois :}
+// Go routine efficiently reading and writing.
 
 type ArpScan struct {
 }
 
 func (arpScan *ArpScan) Start() {
-	getSubnetRange(net.ParseIP("192.168.1.1"), "/24")
+	getSubnetRange(getNetwork(getLocalInterface("enp58s0u1u4")))
 	/*scan(getLocalInterface("enp58s0u1u4"))
 	}
 
@@ -39,7 +41,7 @@ func readARPFromHandle(handle *pcap.Handle) {
 }
 
 func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
-	intfaceAddr := getIP(intface)
+	intfaceAddr := getNetwork(intface)
 	buffer := gopacket.NewSerializeBuffer()
 	options := gopacket.SerializeOptions{
 		FixLengths:       true,
@@ -57,10 +59,10 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 		ProtAddressSize:   4,
 		Operation:         layers.ARPRequest,
 		SourceHwAddress:   []byte(intface.HardwareAddr),
-		SourceProtAddress: []byte(intfaceAddr),
+		SourceProtAddress: []byte(intfaceAddr), //Does not work since subnet mask, need to check if string
 		DstHwAddress:      []byte{0, 0, 0, 0, 0, 0},
 	}
-	for _, ip := range getSubnetRange(intfaceAddr, "/24") {
+	for _, ip := range getSubnetRange(intfaceAddr) {
 		arp.DstProtAddress = []byte(ip)
 		err := gopacket.SerializeLayers(buffer, options, &eth, &arp)
 		if err != nil {
@@ -72,26 +74,50 @@ func writeARPToHandle(handle *pcap.Handle, intface *net.Interface) {
 	}
 }
 
-func getSubnetRange(ipAddr net.IP, subnet string) []net.IP {
-	fmt.Printf("%s\n", ipAddr)
+func getSubnetRange(network string) []net.IP {
+	var ips []net.IP
+	netw := strings.Split(network, "/")
+	i, err := strconv.Atoi(netw[1])
+	if err != nil {
+		fmt.Println("Can't convert mask", err)
+	}
+	mask := net.CIDRMask(i, 32)
+	networkAddr := net.ParseIP(netw[0]).Mask(mask)
+	broadcast := make(net.IP, len(networkAddr))
+	for i := 0; i < len(networkAddr); i++ {
+		broadcast[i] = networkAddr[i] | ^mask[i]
+	}
+	inc(networkAddr)
+	for ip := networkAddr; !ip.Equal(broadcast); ip = inc(ip) {
+		fmt.Println(ip)
+		ips = append(ips, ip)
+	}
+	fmt.Printf("%v\n", ips)
+
+	return ips
+}
+
+func inc(ip net.IP) net.IP {
+	incIP := make(net.IP, len(ip))
+	copy(incIP, ip)
+	for i := len(incIP) - 1; i >= 0; i-- {
+		(incIP)[i]++
+		if (incIP)[i] > 0 {
+			return incIP
+		}
+	}
 	return nil
 }
 
-// Redo to get correct ip and assure it's valid.
-func getIP(intface *net.Interface) net.IP {
+func getNetwork(intface *net.Interface) string {
 	addrs, err := intface.Addrs()
 	if err != nil {
-		fmt.Println("no add")
+		fmt.Println("No address for interface")
 	}
-	for _, a := range addrs {
-		println(a.Network(), a.String())
-		return net.ParseIP(a.String())
-	}
-	return nil
+	return addrs[0].String()
 }
 
 func getLocalInterface(name string) *net.Interface {
-	// Should find a way to know which non-loopback interface we want with ip ?
 	intfaces, err := net.Interfaces()
 	if err != nil {
 		log.Printf("Cannot get interfaces %s", err)
@@ -99,9 +125,7 @@ func getLocalInterface(name string) *net.Interface {
 	}
 	for _, intface := range intfaces {
 		if intface.Name == name {
-			fmt.Println(intface.Name)
-			return &intface //Find first up interface, maybe not the one we want ?? Should be able to select interface
-			// Or find default with the ip range of the network
+			return &intface // Or find default with the ip range of the network
 		}
 	}
 	return nil

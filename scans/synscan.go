@@ -1,6 +1,7 @@
 package scans
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -26,24 +27,30 @@ func (scan *SynScan) closeConnection(connection *net.TCPConn) {
 	}
 }
 
-func (scan *SynScan) Start(ports []string, ip string, timeout time.Duration) {
+func (scan *SynScan) scan(ip *net.IP, port string) {
+	address := net.JoinHostPort(ip.String(), port)
+	connection, err := net.DialTimeout("tcp", address, 2*time.Second)
+	if err != nil {
+		fmt.Println("d")
+
+		// Check for rst return
+		if rstError, ok := err.(*net.OpError).Err.(*os.SyscallError); ok && rstError.Err == syscall.ECONNREFUSED {
+			log.Printf("%s is closed", address)
+			// Checks for timeout error
+		} else if timeoutError, ok := err.(net.Error); ok && timeoutError.Timeout() {
+			log.Printf("%s is filtered or unreachable", address)
+		} else {
+			log.Printf("%s", err)
+		}
+	} else {
+		log.Printf("%s is open", address)
+		scan.closeConnection(connection.(*net.TCPConn))
+	}
+}
+
+func (scan *SynScan) Start(ports []string, ip string) {
 	ipNet := net.ParseIP(ip)
 	for _, port := range ports {
-		address := net.JoinHostPort(ipNet.String(), port)
-		connection, err := net.DialTimeout("tcp", address, timeout)
-		if err != nil {
-			// Check for rst return
-			if rstError, ok := err.(*net.OpError).Err.(*os.SyscallError); ok && rstError.Err == syscall.ECONNREFUSED {
-				log.Printf("%s is closed", address)
-				// Checks for timeout error
-			} else if timeoutError, ok := err.(net.Error); ok && timeoutError.Timeout() {
-				log.Printf("%s is filtered or unreachable", address)
-			} else {
-				log.Printf("%s", err)
-			}
-		} else {
-			log.Printf("%s is open", address)
-			scan.closeConnection(connection.(*net.TCPConn))
-		}
+		go scan.scan(&ipNet, port)
 	}
 }

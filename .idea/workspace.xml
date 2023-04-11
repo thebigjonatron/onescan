@@ -5,7 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b5524280-1356-4753-91ce-dd033acfe70f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/scans/arpscan.go" beforeDir="false" afterPath="$PROJECT_DIR$/scans/arpscan.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scans/synscan.go" beforeDir="false" afterPath="$PROJECT_DIR$/scans/synscan.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,6 +71,7 @@
     <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="onescan" />
       <working_directory value="$PROJECT_DIR$" />
+      <parameters value="heelloo" />
       <sudo value="true" />
       <kind value="FILE" />
       <package value="onescan" />

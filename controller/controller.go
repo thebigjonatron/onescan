@@ -8,7 +8,6 @@ import (
 
 func Start(args []string) {
 	fmt.Println(args)
-	fmt.Println(len(args))
 	s := new(scans.SynScan)
 	ports := make([]string, 100)
 	for i := 0; i < len(ports); i++ {
@@ -19,10 +18,18 @@ func Start(args []string) {
 	//s.Start()
 }
 
-func mode(arg string) {
-
+// Default mode auto
+func mode(arg string) scans.Scanner {
+	switch arg {
+	case "syn":
+		return new(scans.SynScan)
+	case "arp":
+		return new(scans.SynScan)
+	default:
+		return new(scans.SynScan)
+	}
 }
 
-func add(arg string) {
+func addressResolve(arg string) {
 
 }

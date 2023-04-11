@@ -9,4 +9,5 @@ type Utils struct {
 	Mask    string
 	Intface string
 	Ssid    string
+	Ports   []string
 }

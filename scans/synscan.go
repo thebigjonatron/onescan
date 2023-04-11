@@ -46,8 +46,8 @@ func (scan *SynScan) scan(ip *net.IP, port string) {
 }
 
 func (scan *SynScan) Start(utils Utils) {
-	ipNet := net.ParseIP(ip)
-	for _, port := range ports {
+	ipNet := net.ParseIP(utils.Ip)
+	for _, port := range utils.Ports {
 		go scan.scan(&ipNet, port)
 	}
 }

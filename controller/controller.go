@@ -8,25 +8,33 @@ import (
 
 func Start(args []string) {
 	fmt.Println(args)
+	myUtils := scans.Utils{
+		Ip:      "192.168.0.1",
+		Mask:    "255.255.255.0",
+		Intface: "eth0",
+		Ssid:    "MyWifiNetwork",
+	}
+	findMode(args[0]).Start(myUtils)
+
 	s := new(scans.SynScan)
 	ports := make([]string, 100)
 	for i := 0; i < len(ports); i++ {
 		ports[i] = strconv.Itoa(i)
 	}
-	s.Start(ports, "192.168.1.1")
+	s.Start()
 	//s := new(scans.ArpScan)
 	//s.Start()
 }
 
 // Default mode auto
-func mode(arg string) scans.Scanner {
+func findMode(arg string) scans.Scanner {
 	switch arg {
 	case "syn":
 		return new(scans.SynScan)
 	case "arp":
-		return new(scans.SynScan)
+		return new(scans.ArpScan)
 	default:
-		return new(scans.SynScan)
+		return nil
 	}
 }
 

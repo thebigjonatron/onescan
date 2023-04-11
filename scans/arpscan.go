@@ -16,7 +16,7 @@ import (
 type ArpScan struct {
 }
 
-func (arpScan *ArpScan) Start() {
+func (arpScan *ArpScan) Start(utils Utils) {
 	scan(getLocalInterface("enp58s0u1u4"))
 }
 

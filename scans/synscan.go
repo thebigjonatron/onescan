@@ -1,7 +1,6 @@
 package scans
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -31,8 +30,6 @@ func (scan *SynScan) scan(ip *net.IP, port string) {
 	address := net.JoinHostPort(ip.String(), port)
 	connection, err := net.DialTimeout("tcp", address, 2*time.Second)
 	if err != nil {
-		fmt.Println("d")
-
 		// Check for rst return
 		if rstError, ok := err.(*net.OpError).Err.(*os.SyscallError); ok && rstError.Err == syscall.ECONNREFUSED {
 			log.Printf("%s is closed", address)
@@ -48,7 +45,7 @@ func (scan *SynScan) scan(ip *net.IP, port string) {
 	}
 }
 
-func (scan *SynScan) Start(ports []string, ip string) {
+func (scan *SynScan) Start(utils Utils) {
 	ipNet := net.ParseIP(ip)
 	for _, port := range ports {
 		go scan.scan(&ipNet, port)

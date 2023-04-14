@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5524280-1356-4753-91ce-dd033acfe70f" name="Changes" comment="" />
+    <list default="true" id="b5524280-1356-4753-91ce-dd033acfe70f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller/controller.go" beforeDir="false" afterPath="$PROJECT_DIR$/controller/controller.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scans/scan.go" beforeDir="false" afterPath="$PROJECT_DIR$/scans/scan.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,10 +60,10 @@
     </key>
   </component>
   <component name="RunManager" selected="Go Build.go build main.go">
-    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+    <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
       <module name="onescan" />
       <working_directory value="$PROJECT_DIR$" />
-      <parameters value="syn 10.10.10.10" />
+      <parameters value="-ip 10.10.10.10 -ports 10,12,15" />
       <sudo value="true" />
       <kind value="FILE" />
       <package value="onescan" />
@@ -82,7 +86,6 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build main.go" />
         <item itemvalue="Go Build.go build onescan" />
       </list>
     </recent_temporary>

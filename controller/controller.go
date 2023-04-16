@@ -3,33 +3,67 @@ package controller
 import (
 	"flag"
 	"fmt"
+	"log"
+	"net"
 	"onescan/scans"
 	"strconv"
+	"strings"
 )
 
-//Possible ways to start the program :
-//	- onescan syn 10.10.10.10/32 12,14,15
-//	- onescan 10.10.10.10
-//	- onescan 10.10.10.10
-//	- onescan 10.10.10.10
-
 func Start(args []string) {
-	fmt.Println(args)
-	findMode(args[0]).Start(createUtils())
-	ipAddress := flag.String("ip", "", "the IP address to scan (e.g. 10.10.10.10/32)")
-	ports := flag.String("ports", "", "the comma-separated list of ports to scan (e.g. 12,14,15)")
+	portsFlag := flag.String("p", "", "Comma seperated list of ports or range or ports. Separate with , and indicate range with -")
+	intFlag := flag.String("h", "localhost", "host name or IP address")
 	flag.Parse()
-	fmt.Printf("IP address: %s\n", *ipAddress)
-	fmt.Printf("Ports: %s\n", *ports)
-	//portsSlice := parsePorts(*ports)ports)
+	ports, err := parsePorts(*portsFlag)
 
+	if err != nil {
+	}
+
+	findMode(args[0]).Start(createUtils(ports, *intFlag))
 }
 
-func parseFlags() {
-
+func parsePorts(portsStr string) ([]int, error) {
+	var ports []int
+	for _, portStr := range strings.Split(portsStr, ",") {
+		portRange := strings.Split(portStr, "-")
+		if len(portRange) == 2 {
+			p1 := validatePort(portRange[0])
+			p2 := validatePort(portRange[1])
+			min, max := minmax(p1, p2)
+			if p1 != 0 || p2 != 0 {
+				for i := min; i <= max; i++ {
+					fmt.Println(i)
+					ports = append(ports, i)
+				}
+			}
+		} else {
+			ports = append(ports, validatePort(portStr))
+		}
+	}
+	return ports, nil
 }
 
-// Default mode auto
+func minmax(a int, b int) (int, int) {
+	var max, min int
+	if a > b {
+		max = a
+		min = b
+	} else {
+		max = b
+		min = a
+	}
+	return min, max
+}
+
+func validatePort(portStr string) int {
+	port, err := strconv.Atoi(portStr)
+	if err != nil || port < 1 || port > 65535 {
+		log.Println("non valid port")
+		return 0
+	}
+	return port
+}
+
 func findMode(arg string) scans.Scanner {
 	switch arg {
 	case "syn":
@@ -41,42 +75,13 @@ func findMode(arg string) scans.Scanner {
 	}
 }
 
-// Define if it's a range or not
-func addressResolver(arg string) {
+func createUtils(ports []int, intfaceStr string) scans.UtilsArp {
+	intface, err := net.InterfaceByName(intfaceStr)
+	if err != nil {
 
-}
-
-func createUtils() scans.Utils {
-	ports := make([]string, 100)
-	for i := 0; i < len(ports); i++ {
-		ports[i] = strconv.Itoa(i)
 	}
-	myUtils := scans.Utils{
-		Ip:      "192.168.0.1",
-		Mask:    "255.255.255.0",
-		Intface: "eth0",
-		Ssid:    "MyWifiNetwork",
-		Ports:   ports,
-	}
-	return myUtils
-}
-
-/*
-	func parsePorts(ports string) []int {
-		portsSlice := []int{}
-		for _, port := range split(ports, ',') {
-			portsSlice = append(portsSlice, parseInt(port))
-		}
-		return portsSlice
-	}
-*/
-func defaults() scans.Utils {
-	ports := make([]string, 100)
-	myUtils := scans.Utils{
-		Ip:      "192.168.0.1",
-		Mask:    "255.255.255.0",
-		Intface: "eth0",
-		Ssid:    "MyWifiNetwork",
+	myUtils := scans.UtilsArp{
+		Intface: intface,
 		Ports:   ports,
 	}
 	return myUtils
